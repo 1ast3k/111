@@ -2,9 +2,9 @@
 # Listen for incoming connections
 listen: true
 # Server port
-port: 8000
+port: 8001
 # Toggle whitelist mode
-whitelistMode: false
+whitelistMode: true
 # Whitelist of allowed IP addresses
 whitelist:
   - 127.0.0.1
@@ -12,12 +12,12 @@ whitelist:
 basicAuthMode: true
 # Basic authentication credentials
 basicAuthUser:
-  username: username
-  password: password
+  username: a
+  password: a
 # Enables CORS proxy middleware
 enableCorsProxy: false
 # Disable security checks - NOT RECOMMENDED
-securityOverride: false
+securityOverride: true
 # -- ADVANCED CONFIGURATION --
 # Open the browser automatically
 autorun: true
