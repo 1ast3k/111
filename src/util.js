@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 const path = require('path');
 const fs = require('fs');
 const commandExistsSync = require('command-exists').sync;
@@ -9,6 +10,16 @@ const { default: simpleGit } = require('simple-git');
 const { Readable } = require('stream');
 
 const { DIRECTORIES } = require('./constants');
+=======
+const path = require("path");
+const fs = require("fs");
+const commandExistsSync = require("command-exists").sync;
+const _ = require("lodash");
+const yauzl = require("yauzl");
+const mime = require("mime-types");
+const yaml = require("yaml");
+const { default: simpleGit } = require("simple-git");
+>>>>>>> Stashed changes
 
 /**
  * Returns the config object from the config.yaml file.
@@ -17,35 +28,48 @@ const { DIRECTORIES } = require('./constants');
 function getConfig() {
     function getNewConfig() {
         try {
-            const config = yaml.parse(fs.readFileSync(path.join(process.cwd(), './config.yaml'), 'utf8'));
+            const config = yaml.parse(
+                fs.readFileSync(
+                    path.join(process.cwd(), "./config.yaml"),
+                    "utf8",
+                ),
+            );
             return config;
         } catch (error) {
-            console.warn('Failed to read config.yaml');
+            console.warn("Failed to read config.yaml");
             return {};
         }
     }
 
     function getLegacyConfig() {
         try {
-            console.log(color.yellow('WARNING: config.conf is deprecated. Please run "npm run postinstall" to convert to config.yaml'));
-            const config = require(path.join(process.cwd(), './config.conf'));
+            console.log(
+                color.yellow(
+                    'WARNING: config.conf is deprecated. Please run "npm run postinstall" to convert to config.yaml',
+                ),
+            );
+            const config = require(path.join(process.cwd(), "./config.conf"));
             return config;
         } catch (error) {
-            console.warn('Failed to read config.conf');
+            console.warn("Failed to read config.conf");
             return {};
         }
     }
 
-    if (fs.existsSync('./config.yaml')) {
+    if (fs.existsSync("./config.yaml")) {
         return getNewConfig();
     }
 
-    if (fs.existsSync('./config.conf')) {
+    if (fs.existsSync("./config.conf")) {
         return getLegacyConfig();
     }
 
-    console.error(color.red('No config file found. Please create a config.yaml file. The default config file can be found in the /default folder.'));
-    console.error(color.red('The program will now exit.'));
+    console.error(
+        color.red(
+            "No config file found. Please create a config.yaml file. The default config file can be found in the /default folder.",
+        ),
+    );
+    console.error(color.red("The program will now exit."));
     process.exit(1);
 }
 
@@ -66,7 +90,7 @@ function getConfigValue(key, defaultValue = null) {
  * @returns {string} Basic Auth header value
  */
 function getBasicAuthHeader(auth) {
-    const encoded = Buffer.from(`${auth}`).toString('base64');
+    const encoded = Buffer.from(`${auth}`).toString("base64");
     return `Basic ${encoded}`;
 }
 
@@ -76,19 +100,22 @@ function getBasicAuthHeader(auth) {
  * @returns {Promise<{agent: string, pkgVersion: string, gitRevision: string | null, gitBranch: string | null}>} Version info object
  */
 async function getVersion() {
-    let pkgVersion = 'UNKNOWN';
+    let pkgVersion = "UNKNOWN";
     let gitRevision = null;
     let gitBranch = null;
     try {
-        const pkgJson = require(path.join(process.cwd(), './package.json'));
+        const pkgJson = require(path.join(process.cwd(), "./package.json"));
         pkgVersion = pkgJson.version;
-        if (!process['pkg'] && commandExistsSync('git')) {
+        if (!process["pkg"] && commandExistsSync("git")) {
             const git = simpleGit();
-            gitRevision = await git.cwd(process.cwd()).revparse(['--short', 'HEAD']);
-            gitBranch = await git.cwd(process.cwd()).revparse(['--abbrev-ref', 'HEAD']);
+            gitRevision = await git
+                .cwd(process.cwd())
+                .revparse(["--short", "HEAD"]);
+            gitBranch = await git
+                .cwd(process.cwd())
+                .revparse(["--abbrev-ref", "HEAD"]);
         }
-    }
-    catch {
+    } catch {
         // suppress exception
     }
 
@@ -102,7 +129,7 @@ async function getVersion() {
  * @returns {Promise<void>} Promise that resolves after the given amount of milliseconds
  */
 function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -127,36 +154,42 @@ function getHexString(length) {
  * @returns {Promise<Buffer>} Buffer containing the extracted file
  */
 async function extractFileFromZipBuffer(archiveBuffer, fileExtension) {
-    return await new Promise((resolve, reject) => yauzl.fromBuffer(Buffer.from(archiveBuffer), { lazyEntries: true }, (err, zipfile) => {
-        if (err) {
-            reject(err);
-        }
+    return await new Promise((resolve, reject) =>
+        yauzl.fromBuffer(
+            Buffer.from(archiveBuffer),
+            { lazyEntries: true },
+            (err, zipfile) => {
+                if (err) {
+                    reject(err);
+                }
 
-        zipfile.readEntry();
-        zipfile.on('entry', (entry) => {
-            if (entry.fileName.endsWith(fileExtension)) {
-                console.log(`Extracting ${entry.fileName}`);
-                zipfile.openReadStream(entry, (err, readStream) => {
-                    if (err) {
-                        reject(err);
+                zipfile.readEntry();
+                zipfile.on("entry", (entry) => {
+                    if (entry.fileName.endsWith(fileExtension)) {
+                        console.log(`Extracting ${entry.fileName}`);
+                        zipfile.openReadStream(entry, (err, readStream) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                const chunks = [];
+                                readStream.on("data", (chunk) => {
+                                    chunks.push(chunk);
+                                });
+
+                                readStream.on("end", () => {
+                                    const buffer = Buffer.concat(chunks);
+                                    resolve(buffer);
+                                    zipfile.readEntry(); // Continue to the next entry
+                                });
+                            }
+                        });
                     } else {
-                        const chunks = [];
-                        readStream.on('data', (chunk) => {
-                            chunks.push(chunk);
-                        });
-
-                        readStream.on('end', () => {
-                            const buffer = Buffer.concat(chunks);
-                            resolve(buffer);
-                            zipfile.readEntry(); // Continue to the next entry
-                        });
+                        zipfile.readEntry();
                     }
                 });
-            } else {
-                zipfile.readEntry();
-            }
-        });
-    }));
+            },
+        ),
+    );
 }
 
 /**
@@ -168,7 +201,7 @@ async function getImageBuffers(zipFilePath) {
     return new Promise((resolve, reject) => {
         // Check if the zip file exists
         if (!fs.existsSync(zipFilePath)) {
-            reject(new Error('File not found'));
+            reject(new Error("File not found"));
             return;
         }
 
@@ -179,21 +212,28 @@ async function getImageBuffers(zipFilePath) {
                 reject(err);
             } else {
                 zipfile.readEntry();
-                zipfile.on('entry', (entry) => {
+                zipfile.on("entry", (entry) => {
                     const mimeType = mime.lookup(entry.fileName);
-                    if (mimeType && mimeType.startsWith('image/') && !entry.fileName.startsWith('__MACOSX')) {
+                    if (
+                        mimeType &&
+                        mimeType.startsWith("image/") &&
+                        !entry.fileName.startsWith("__MACOSX")
+                    ) {
                         console.log(`Extracting ${entry.fileName}`);
                         zipfile.openReadStream(entry, (err, readStream) => {
                             if (err) {
                                 reject(err);
                             } else {
                                 const chunks = [];
-                                readStream.on('data', (chunk) => {
+                                readStream.on("data", (chunk) => {
                                     chunks.push(chunk);
                                 });
 
-                                readStream.on('end', () => {
-                                    imageBuffers.push([path.parse(entry.fileName).base, Buffer.concat(chunks)]);
+                                readStream.on("end", () => {
+                                    imageBuffers.push([
+                                        path.parse(entry.fileName).base,
+                                        Buffer.concat(chunks),
+                                    ]);
                                     zipfile.readEntry(); // Continue to the next entry
                                 });
                             }
@@ -203,11 +243,11 @@ async function getImageBuffers(zipFilePath) {
                     }
                 });
 
-                zipfile.on('end', () => {
+                zipfile.on("end", () => {
                     resolve(imageBuffers);
                 });
 
-                zipfile.on('error', (err) => {
+                zipfile.on("error", (err) => {
                     reject(err);
                 });
             }
@@ -224,35 +264,34 @@ async function readAllChunks(readableStream) {
     return new Promise((resolve, reject) => {
         // Consume the readable stream
         const chunks = [];
-        readableStream.on('data', (chunk) => {
+        readableStream.on("data", (chunk) => {
             chunks.push(chunk);
         });
 
-        readableStream.on('end', () => {
+        readableStream.on("end", () => {
             //console.log('Finished reading the stream.');
             resolve(chunks);
         });
 
-        readableStream.on('error', (error) => {
-            console.error('Error while reading the stream:', error);
+        readableStream.on("error", (error) => {
+            console.error("Error while reading the stream:", error);
             reject();
         });
     });
 }
 
 function isObject(item) {
-    return (item && typeof item === 'object' && !Array.isArray(item));
+    return item && typeof item === "object" && !Array.isArray(item);
 }
 
 function deepMerge(target, source) {
     let output = Object.assign({}, target);
     if (isObject(target) && isObject(source)) {
-        Object.keys(source).forEach(key => {
+        Object.keys(source).forEach((key) => {
             if (isObject(source[key])) {
                 if (!(key in target))
                     Object.assign(output, { [key]: source[key] });
-                else
-                    output[key] = deepMerge(target[key], source[key]);
+                else output[key] = deepMerge(target[key], source[key]);
             } else {
                 Object.assign(output, { [key]: source[key] });
             }
@@ -263,9 +302,9 @@ function deepMerge(target, source) {
 
 const color = {
     byNum: (mess, fgNum) => {
-        mess = mess || '';
+        mess = mess || "";
         fgNum = fgNum === undefined ? 31 : fgNum;
-        return '\u001b[' + fgNum + 'm' + mess + '\u001b[39m';
+        return "\u001b[" + fgNum + "m" + mess + "\u001b[39m";
     },
     black: (mess) => color.byNum(mess, 30),
     red: (mess) => color.byNum(mess, 31),
