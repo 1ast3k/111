@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 const path = require('path');
 const fs = require('fs');
 const commandExistsSync = require('command-exists').sync;
@@ -10,16 +9,6 @@ const { default: simpleGit } = require('simple-git');
 const { Readable } = require('stream');
 
 const { DIRECTORIES } = require('./constants');
-=======
-const path = require("path");
-const fs = require("fs");
-const commandExistsSync = require("command-exists").sync;
-const _ = require("lodash");
-const yauzl = require("yauzl");
-const mime = require("mime-types");
-const yaml = require("yaml");
-const { default: simpleGit } = require("simple-git");
->>>>>>> Stashed changes
 
 /**
  * Returns the config object from the config.yaml file.
