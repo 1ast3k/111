@@ -60,6 +60,16 @@ const observer = new MutationObserver(function (mutations) {
             RA_checkOnlineStatus();
         } else if (mutation.target.parentNode === SelectedCharacterTab) {
             setTimeout(RA_CountCharTokens, 200);
+        } else if (mutation.target.classList.contains('mes_text')) {
+            if (mutation.target instanceof HTMLElement) {
+                for (const element of mutation.target.getElementsByTagName('math')) {
+                    element.childNodes.forEach(function (child) {
+                        if (child.nodeType === Node.TEXT_NODE) {
+                            child.textContent = '';
+                        }
+                    });
+                }
+            }
         }
     });
 });
@@ -379,8 +389,10 @@ function RA_autoconnect(PrevApi) {
                 }
                 break;
             case 'textgenerationwebui':
-                if ((textgen_settings.type === textgen_types.MANCER && secret_state[SECRET_KEYS.MANCER]) ||
-                    (textgen_settings.type === textgen_types.TOGETHERAI && secret_state[SECRET_KEYS.TOGETHERAI])
+                if ((textgen_settings.type === textgen_types.MANCER && secret_state[SECRET_KEYS.MANCER])
+                    || (textgen_settings.type === textgen_types.TOGETHERAI && secret_state[SECRET_KEYS.TOGETHERAI])
+                    || (textgen_settings.type === textgen_types.INFERMATICAI && secret_state[SECRET_KEYS.INFERMATICAI]
+                    || (textgen_settings.type === textgen_types.OPENROUTER && secret_state[SECRET_KEYS.OPENROUTER]))
                 ) {
                     $('#api_button_textgenerationwebui').trigger('click');
                 }
@@ -1006,7 +1018,7 @@ export function initRossMods() {
                         <input type="checkbox" id="regenerateWithCtrlEnter">
                         Don't ask again
                     </label>`;
-                    callPopup(popupText, 'confirm').then(result =>{
+                    callPopup(popupText, 'confirm').then(result => {
                         if (!result) {
                             return;
                         }
@@ -1122,13 +1134,15 @@ export function initRossMods() {
                 .not('#right-nav-panel')
                 .not('#floatingPrompt')
                 .not('#cfgConfig')
+                .not('#logprobsViewer')
                 .is(':visible')) {
                 let visibleDrawerContent = $('.drawer-content:visible')
                     .not('#WorldInfo')
                     .not('#left-nav-panel')
                     .not('#right-nav-panel')
                     .not('#floatingPrompt')
-                    .not('#cfgConfig');
+                    .not('#cfgConfig')
+                    .not('#logprobsViewer');
                 $(visibleDrawerContent).parent().find('.drawer-icon').trigger('click');
                 return;
             }
@@ -1145,6 +1159,11 @@ export function initRossMods() {
 
             if ($('#cfgConfig').is(':visible')) {
                 $('#CFGClose').trigger('click');
+                return;
+            }
+
+            if ($('#logprobsViewer').is(':visible')) {
+                $('#logprobsViewerClose').trigger('click');
                 return;
             }
 
